@@ -173,13 +173,19 @@
                         </div>
                         <div style='display: flex; flex-direction: column;'>
                             <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10 col-content">
-                                {{ Form::file('image', $company->display_name, array('placeholder' => '', 'class' => 'form-control validate[required, maxSize[100]]', 'data-prompt-position' => 'bottomLeft:0,11')) }}
+                                {{ Form::file('image', ['id' => $company->image]) }}
                             </div>
 
+                            @if($company->page_type === 'create')
                             <div id='img-change'>
                                 <p style='color: red; margin-left: 12px;'>画像をアップロードしてください(推奨サイズ:1280px × 720px ・ 容量は5MBまで)</p>
                                 <img src='/img/no-image/no-image.jpg' width='300px' style='margin-left: 12px;'>
                             </div>
+                            @else
+                            <div id='img-change'>
+                                <img src='{{ asset('uploads/files/'.$company->image) }}'  width='300px' style='margin-left: 12px;' >
+                            </div>
+                            @endif
                         </div>
                     </div>
 

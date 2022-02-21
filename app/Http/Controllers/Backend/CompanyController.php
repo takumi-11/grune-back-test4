@@ -17,6 +17,8 @@ class CompanyController extends Controller
         return 'company';
     }
 
+    private static int $sequence = 1;
+
     protected function validator(array $data, $type) {
         // Determine if password validation is required depending on the calling
         return Validator::make($data, [
@@ -80,10 +82,31 @@ class CompanyController extends Controller
 
     public function update(Request $request) {
         $newCompany = $request->all();
+        $pref = \DB::table('prefectures')->find($newCompany['prefecture_id'])->display_name;
+        $number = rand();
+        $extension = $request->file("image")->getClientOriginalExtension();
+        $image = $request->file("image");
+        $path = Storage::disk("public_uploads")->putFileAs('files', $image, 'image_' . $number . '.' . $extension); 
+
         try {
             $currentCompany = Company::find($request->get('id'));
+
             if ($currentCompany) {
-                $currentCompany->update($newCompany);
+                $currentCompany->name = $newCompany['name'];
+                $currentCompany->email = $newCompany['email'];
+                $currentCompany->prefecture_id = $newCompany['prefecture_id'];
+                $currentCompany->phone = $newCompany['phone'];
+                $currentCompany->postcode = $newCompany['postcode'];
+                $currentCompany->city = $newCompany['city'];
+                $currentCompany->local = $newCompany['local'];
+                $currentCompany->street_address = $pref . $newCompany['city'] . $newCompany['local'];
+                $currentCompany->business_hour = $newCompany['business_hour'];
+                $currentCompany->regular_holiday = $newCompany['regular_holiday'];
+                $currentCompany->image = 'image_' . $number . '.' . $extension;
+                $currentCompany->fax = $newCompany['fax'];
+                $currentCompany->url = $newCompany['url'];
+                $currentCompany->license_number = $newCompany['license_number'];
+                $currentCompany->save();
                 // If update is successful
                 return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_UPDATE_MESSAGE'));
             } else {
@@ -98,6 +121,9 @@ class CompanyController extends Controller
 
     public function create(Request $request) {
         $newCompany = $request->all();
+
+        $number = rand();
+
         $pref = \DB::table('prefectures')->find($newCompany['prefecture_id'])->display_name;
         
         //拡張子付きでファイル名を取得
@@ -110,26 +136,12 @@ class CompanyController extends Controller
         $extension = $request->file("image")->getClientOriginalExtension();
         
         $image = $request->file("image");
-        $path = Storage::disk("public_uploads")->putFileAs('files', $image, 'image_' . $newCompany['postcode'] . '.' . $extension); 
-        
-        $company = Company::insertGetId([
-            'name' => $newCompany['name'],
-            'email' => $newCompany['email'],
-            'postcode' => $newCompany['postcode'],
-            'prefecture_id' => $newCompany['prefecture_id'],
-            'city' => $newCompany['city'],
-            'local' => $newCompany['local'],
-            'street_address' => $pref . $newCompany['city'] . $newCompany['local'],
-            'business_hour' => $newCompany['business_hour'],
-            'regular_holiday' => $newCompany['regular_holiday'],
-            'phone' => $newCompany['phone'],
-            'fax' => $newCompany['fax'],
-            'url' => $newCompany['url'],
-            'license_number' => $newCompany['license_number'],
-            'image' => 'image_' . $newCompany['postcode'] . '.' . $extension
-        ]);
+        $path = Storage::disk("public_uploads")->putFileAs('files', $image, 'image_' . $number . '.' . $extension); 
 
         try {
+            $newCompany['street_address'] = $pref . $newCompany['city'] . $newCompany['local'];
+            $newCompany['image'] = 'image_' . $number . '.' . $extension;
+            $company = Company::create($newCompany);
             if ($company) {
                 // Create is successful, back to list
                 return redirect()->route($this->getRoute())->with('success', Config::get('const.SUCCESS_CREATE_MESSAGE'));
